@@ -10,6 +10,7 @@ using DiaryPortfolio.Application.IServices;
 using DiaryPortfolio.Application.Request;
 using DiaryPortfolio.Domain.Entities;
 using DiaryPortfolio.Infrastructure.Data;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace DiaryPortfolio.Infrastructure.Repository;
@@ -44,9 +45,18 @@ public class OnboardingRepository(
                 "sp_SubmitOnboarding",
                 parameters,
                 commandType: CommandType.StoredProcedure);
-            
+
             return ResultResponse<OnboardingSubmission>.Success(request);
-            
+
+        }
+        catch (SqlException ex)
+        {
+            return ResultResponse<OnboardingSubmission>.Failure(
+                new Error(
+                    HttpStatusCode.InternalServerError,
+                    "A database error occurred while processing your request.",
+                    request));
+
         }
         catch (Exception ex)
         {

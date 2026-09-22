@@ -19,7 +19,7 @@ public class OnboardingController(IMediator mediator) : ControllerBase
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult<ResultResponse<OnboardingSubmission>>> SubmitOnboardingDetails(
         [FromForm] string  jsonOnboardingDetails,
-        [FromForm] IFormFile profilePhoto,
+        [FromForm] IFormFile? profilePhoto,
         CancellationToken cancellationToken)
     {
         var onboardingRequest = JsonSerializer.Deserialize<OnboardingSubmission>(
@@ -39,11 +39,14 @@ public class OnboardingController(IMediator mediator) : ControllerBase
                         "Onboarding details not given."));
         }
 
-        onboardingRequest.Profile.ProfileFileSteam = new MediaStream
+        if (profilePhoto != null)
         {
-            Stream = profilePhoto.OpenReadStream(),
-            FileName = profilePhoto.FileName,
-        };
+            onboardingRequest.Profile.ProfileFileSteam = new MediaStream
+            {
+                Stream = profilePhoto.OpenReadStream(),
+                FileName = profilePhoto.FileName,
+            };
+        }
         
         // if (profileResume != null)
         // {
