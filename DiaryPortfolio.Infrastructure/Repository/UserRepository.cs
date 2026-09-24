@@ -1,26 +1,13 @@
-using Azure.Core;
-using Dapper;
-using DiaryPortfolio.Application.Common;
-using DiaryPortfolio.Application.Common.Helpers;
 using DiaryPortfolio.Application.IRepository;
 using DiaryPortfolio.Application.IServices;
-using DiaryPortfolio.Application.Request;
 using DiaryPortfolio.Domain.Entities;
 using DiaryPortfolio.Domain.Enum;
 using DiaryPortfolio.Domain.Interfaces;
 using DiaryPortfolio.Infrastructure.Data;
-using DiaryPortfolio.Infrastructure.Persistence;
 using DiaryPortfolio.Infrastructure.Services;
-using Mediator;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace DiaryPortfolio.Infrastructure.Repository
 {
@@ -94,99 +81,99 @@ namespace DiaryPortfolio.Infrastructure.Repository
                 
         }
 
-        //public async Task<UserModel?> GetUserByUserId(
-        //    Guid userId, 
-        //    ProfileType profileType)
-        //{
-        //    var query = _context.Users.AsQueryable();
-
-        //    if (profileType == ProfileType.Diary)
-        //    {
-        //        query = query
-        //            .Include(u => u.DiaryProfile);
-        //    }
-
-        //    if (profileType == ProfileType.Portfolio)
-        //    {
-        //        query = query
-        //            .Include(u => u.PortfolioProfile)
-        //                .ThenInclude(p => p.ProfilePhoto)
-        //            .Include(u => u.PortfolioProfile)
-        //                .ThenInclude(p => p.Resume)
-        //                .ThenInclude(f => f.ResumeFile);
-        //    }
-
-        //    if (profileType == ProfileType.All)
-        //    {
-        //        query = query
-        //            .Include(u => u.PortfolioProfile)
-        //                .ThenInclude(p => p.ProfilePhoto)
-        //            .Include(u => u.PortfolioProfile)
-        //                .ThenInclude(p => p.Resume)
-        //                .ThenInclude(f => f.ResumeFile)
-        //            .Include(u => u.DiaryProfile);
-        //    }
-
-
-        //    var user = await query
-        //        .FirstOrDefaultAsync(u => u.Id == userId);
-
-        //    return user;
-        //}
-
         public async Task<UserModel?> GetUserByUserId(
-            Guid userId,
+            Guid userId, 
             ProfileType profileType)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            var query = _context.Users.AsQueryable();
+
+            if (profileType == ProfileType.Diary)
             {
-                var parameters = new
-                {
-                    UserId = userId,
-                    ProfileType = profileType.ToString(),
-                };
-
-                using (var multi = await connection.QueryMultipleAsync(
-                    StoredProcedures.Profile.GetPortfolioProfile,
-                    parameters,
-                    commandType: System.Data.CommandType.StoredProcedure))
-                {
-                    var user = await multi.ReadFirstOrDefaultAsync<UserModel>();
-
-                    if (user == null) { return null; }
-
-                    // 2. Read Portfolio Data if applicable
-                    if (profileType == ProfileType.Portfolio 
-                        || profileType == ProfileType.All)
-                    {
-                        user.PortfolioProfile = await multi
-                            .ReadFirstOrDefaultAsync<PortfolioProfileModel>();
-
-                        // Read Location (Third Result Set)
-                        if (user.PortfolioProfile != null)
-                        {
-                            user.PortfolioProfile.Location = await multi
-                                .ReadFirstOrDefaultAsync<LocationModel>();
-
-                            // Read Photo (Fourth Result Set)
-                            user.PortfolioProfile.ProfilePhoto = await multi
-                                .ReadFirstOrDefaultAsync<PhotoModel>();
-                        }
-                    }
-
-                    // 3. Read Diary Data if applicable (Matches the last IF in your SQL)
-                    if (profileType == ProfileType.Diary 
-                        || profileType == ProfileType.All)
-                    {
-                        user.DiaryProfile = await multi
-                            .ReadFirstOrDefaultAsync<DiaryProfileModel>();
-                    }
-
-                    return user;
-                }
-
+                query = query
+                    .Include(u => u.DiaryProfile);
             }
+
+            if (profileType == ProfileType.Portfolio)
+            {
+                query = query
+                    .Include(u => u.PortfolioProfile)
+                        .ThenInclude(p => p.ProfilePhoto)
+                    .Include(u => u.PortfolioProfile)
+                        .ThenInclude(p => p.Resume)
+                        .ThenInclude(f => f.ResumeFile);
+            }
+
+            if (profileType == ProfileType.All)
+            {
+                query = query
+                    .Include(u => u.PortfolioProfile)
+                        .ThenInclude(p => p.ProfilePhoto)
+                    .Include(u => u.PortfolioProfile)
+                        .ThenInclude(p => p.Resume)
+                        .ThenInclude(f => f.ResumeFile)
+                    .Include(u => u.DiaryProfile);
+            }
+
+
+            var user = await query
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            return user;
         }
+
+        // public async Task<UserModel?> GetUserByUserId(
+        //     Guid userId,
+        //     ProfileType profileType)
+        // {
+        //     using (var connection = new SqlConnection(_connectionString))
+        //     {
+        //         var parameters = new
+        //         {
+        //             UserId = userId,
+        //             ProfileType = profileType.ToString(),
+        //         };
+        //
+        //         using (var multi = await connection.QueryMultipleAsync(
+        //             StoredProcedures.Profile.GetPortfolioProfile,
+        //             parameters,
+        //             commandType: System.Data.CommandType.StoredProcedure))
+        //         {
+        //             var user = await multi.ReadFirstOrDefaultAsync<UserModel>();
+        //
+        //             if (user == null) { return null; }
+        //
+        //             // 2. Read Portfolio Data if applicable
+        //             if (profileType == ProfileType.Portfolio 
+        //                 || profileType == ProfileType.All)
+        //             {
+        //                 user.PortfolioProfile = await multi
+        //                     .ReadFirstOrDefaultAsync<PortfolioProfileModel>();
+        //
+        //                 // Read Location (Third Result Set)
+        //                 if (user.PortfolioProfile != null)
+        //                 {
+        //                     user.PortfolioProfile.Location = await multi
+        //                         .ReadFirstOrDefaultAsync<LocationModel>();
+        //
+        //                     // Read Photo (Fourth Result Set)
+        //                     user.PortfolioProfile.ProfilePhoto = await multi
+        //                         .ReadFirstOrDefaultAsync<PhotoModel>();
+        //                 }
+        //             }
+        //
+        //             // 3. Read Diary Data if applicable (Matches the last IF in your SQL)
+        //             if (profileType == ProfileType.Diary 
+        //                 || profileType == ProfileType.All)
+        //             {
+        //                 user.DiaryProfile = await multi
+        //                     .ReadFirstOrDefaultAsync<DiaryProfileModel>();
+        //             }
+        //
+        //             return user;
+        //         }
+        //
+        //     }
+        // }
 
         public async Task<UserModel?> GetUserByUsername(
             string username, ProfileType profileType)
