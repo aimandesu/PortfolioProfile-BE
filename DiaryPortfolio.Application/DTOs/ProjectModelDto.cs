@@ -15,5 +15,6 @@ namespace DiaryPortfolio.Application.DTOs
         public FileModel? ProjectFile { get; set; }
         public List<PhotoModel> ProjectPhotos { get; set; } = [];
         public List<VideoModel> ProjectVideos { get; set; } = [];
+        public bool IsHidden { get; set; } = false;
     }
 }

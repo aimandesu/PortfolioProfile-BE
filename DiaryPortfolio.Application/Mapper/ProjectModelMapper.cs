@@ -24,6 +24,7 @@ namespace DiaryPortfolio.Application.Mapper
                 ProjectVideos = [.. projectModel.ProjectVideos
                     .Select(e => e.Video)
                     .OfType<VideoModel>()],
+                IsHidden = projectModel.IsHidden,
             };
         }
     }

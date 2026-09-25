@@ -59,6 +59,7 @@ namespace DiaryPortfolio.Infrastructure.Repository
                     ProjectFile = projectFile,
                     ProjectPhotos = [.. photos.Select(photo => new ProjectPhotoModel { Photo = photo })],
                     ProjectVideos = [.. videos.Select(video => new ProjectVideoModel { Video = video })],
+                    IsHidden = projectUpload.IsHidden,
                 };
 
                 _context.Projects.Add(project);
@@ -174,6 +175,7 @@ namespace DiaryPortfolio.Infrastructure.Repository
                 //Start replace
                 project.Title = request.Title;
                 project.Description = request.Description;
+                project.IsHidden = request.IsHidden;
 
                 // Add new photos
                 project.ProjectPhotos.AddRange(

@@ -23,6 +23,8 @@ namespace DiaryPortfolio.Domain.Entities
         public Guid? ProjectTypeId { get; set; }
         public ProjectTypeModel? ProjectType { get; set; }
 
+        public bool IsHidden { get; set; } = false;
+
         public Guid OwnerId => PortfolioProfile?.UserId ?? Guid.Empty;
     }
 }
